@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+cd /app
+su-exec ${USER_ID:-82} php /app/artisan websockets:serve

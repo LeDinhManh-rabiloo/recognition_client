@@ -1,0 +1,119 @@
+#========================
+# Define pipeline stages
+#========================
+stages:
+  - preparation
+  - test
+  - build
+
+#========================
+# Define default parameters for jobs
+#========================
+cache:
+  # Caching per-job and per-branch
+  # https://docs.gitlab.com/ee/ci/caching/#sharing-caches-across-the-same-branch
+  key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+
+#========================
+# Define jobs
+#========================
+get-vendors:
+  stage: preparation
+  image: composer
+  before_script:
+    - composer global require hirak/prestissimo
+    - composer config -g cache-dir "$(pwd)/.composer-cache"
+  script:
+    - composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts --ignore-platform-reqs
+  artifacts:
+    paths:
+      - vendor/
+    expire_in: 1 days
+    when: always
+  cache:
+    paths:
+      - .composer-cache/
+
+get-node-modules:
+  stage: preparation
+  image: node:12
+  script:
+    - npm ci
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 days
+    when: always
+  cache:
+    paths:
+      - node_modules/
+
+check-sercurity:
+  stage: test
+  image: registry.rabiloo.net/oanhnn/docker-php:php73-unitd
+  before_script:
+    - curl -OL https://get.sensiolabs.org/security-checker.phar
+  script:
+    - php security-checker.phar security:check composer.lock
+  cache:
+    paths:
+      - security-checker.phar
+
+check-backend:
+  stage: test
+  dependencies:
+    - get-vendors
+  image: registry.rabiloo.net/oanhnn/docker-php:php73-unitd
+  script:
+    - vendor/bin/phpcs --standard=phpcs.xml.dist
+
+# test-backend:
+#   stage: test
+#   dependencies:
+#     - get-vendors
+#   image: registry.rabiloo.net/oanhnn/docker-php:php73-unitd
+#   variables:
+#     MYSQL_ROOT_PASSWORD: s3cr3t
+#     MYSQL_DATABASE:      test
+#     MYSQL_USER:          dev
+#     MYSQL_PASSWORD:      dev
+#     REDIS_HOST:          redis
+#     REDIS_PORT:          6379
+#     DB_HOST:             mysql
+#   services:
+#     - name: mysql:8.0
+#       command:
+#         - "mysqld"
+#         - "--default-authentication-plugin=mysql_native_password"
+#         - "--character-set-server=utf8mb4"
+#         - "--collation-server=utf8mb4_unicode_ci"
+#     - name: redis:alpine
+#   before_script:
+#     - cp .env.example .env
+#     - sed -i "s|;zend_extension=xdebug.so|zend_extension=xdebug.so|i" /etc/php7/conf.d/xdebug.ini
+#     - sed -i "s|DB_DATABASE=.*|DB_DATABASE=test|i" .env
+#     - php artisan app:install --force
+#   script:
+#     - vendor/bin/phpunit --coverage-text --colors=never
+#   artifacts:
+#     paths:
+#       - storage/logs # for debugging
+#     expire_in: 1 days
+#     when: on_failure
+
+build-assets:
+  stage: build
+  dependencies:
+    - get-node-modules
+  image: node:12
+  script:
+    - npm run production
+  artifacts:
+    paths:
+      - public/css/
+      - public/fonts/
+      - public/images/
+      - public/js/
+      - public/mix-manifest.json
+    expire_in: 1 days
+    when: always

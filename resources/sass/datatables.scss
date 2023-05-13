@@ -1,0 +1,57 @@
+@import "~datatables.net-bs4/css/dataTables.bootstrap4.css";
+@import "~datatables.net-buttons-bs4/css/buttons.bootstrap4.css";
+@import "~datatables.net-responsive-bs4/css/responsive.bootstrap4.css";
+@import "~datatables.net-select-bs4/css/select.bootstrap4.css";
+
+/* Custom */
+.table-responsive > .table-bordered {
+  border: 1px solid #dee2e6 !important;
+  margin: 1rem -1px;
+}
+
+// .dataTables_wrapper table {
+//   margin: 0.75rem -1.25rem 1.25rem -1.25rem !important;
+//   width: calc(100% + 2.5rem);
+//   border-bottom: 1px solid #dee2e6;
+// }
+.dataTables_wrapper thead,
+.dataTables_wrapper tr:hover {
+  background-color: #f8f9fa !important;
+}
+.dataTables_wrapper th,
+.dataTables_wrapper td {
+  padding: 0.75rem 1.25rem !important;
+  vertical-align: middle !important;
+}
+.dataTables_wrapper
+  .dtr-inline.collapsed
+  > tbody
+  > tr[role="row"]
+  > td:first-child:before {
+  background-color: #ced4da !important;
+  color: #212529 !important;
+  box-shadow: none !important;
+  top: 1rem !important;
+  left: 0 !important;
+  border: 0 !important;
+  border-radius: 0 0.25rem 0.25rem 0 !important;
+}
+.dataTables_wrapper .table-search {
+  display: inline-block;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+.dataTables_wrapper .table-search button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+@media (max-width: 768px) {
+  .dataTables_wrapper table {
+    margin-bottom: 0 !important;
+  }
+  .dataTables_paginate ul {
+    justify-content: center !important;
+  }
+}

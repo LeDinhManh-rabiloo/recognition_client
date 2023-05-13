@@ -1,0 +1,113 @@
+version: '3.5'
+
+# =========================================
+# X-Templates
+# =========================================
+x-app-service: &app-service
+  image: registry.rabiloo.net/oanhnn/docker-php:php73-unitd
+  # build:
+  #   context: .
+  #   dockerfile: Dockerfile
+  working_dir: /app
+  depends_on:
+    - mysql
+    - redis
+  environment:
+    REDIS_HOST: 'redis'
+    DB_HOST: 'mysql'
+    BROADCAST_DRIVER: 'pusher'
+    LOG_CHANNEL: 'stderr'
+  volumes:
+    - .:/app
+    - .env:/app/.env
+    - .docker/config.json:/docker-entrypoint.d/config.json
+
+# =========================================
+# Networks
+# =========================================
+networks:
+  mysql-net: {}
+  redis-net: {}
+
+# =========================================
+# Volumes
+# =========================================
+volumes:
+  mysql-dt: {}
+  redis-dt: {}
+
+# =========================================
+# Services
+# =========================================
+services:
+  redis:
+    image: redis:alpine
+    networks:
+      - redis-net
+    ports:
+      - 6379:6379
+    restart: unless-stopped
+    volumes:
+      - redis-dt:/data
+
+  mysql:
+    image: mysql:8.0
+    # PDO Doesn't support MySQL 8 caching_sha2_password Authentication
+    # @see https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
+    command:
+      - '--default-authentication-plugin=mysql_native_password'
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+    networks:
+      - mysql-net
+    ports:
+      - 3306:3306
+    restart: unless-stopped
+    volumes:
+      - mysql-dt:/var/lib/mysql
+      # - .docker/initdb.d:/docker-entrypoint-initdb.d
+
+  adminer:
+    image: adminer
+    depends_on:
+      - mysql
+    environment:
+      ADMINER_PLUGINS: 'tables-filter dump-zip'
+      ADMINER_DEFAULT_SERVER: 'mysql'
+    networks:
+      - mysql-net
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+
+  webapp:
+    <<: *app-service
+    expose:
+      - 80
+    networks:
+      - mysql-net
+      - redis-net
+    ports:
+      - 8000:80
+    restart: unless-stopped
+
+  worker:
+    <<: *app-service
+    command: /app/.docker/start-horizon
+    networks:
+      - mysql-net
+      - redis-net
+    restart: unless-stopped
+
+  cron:
+    <<: *app-service
+    command: /app/.docker/start-scheduler
+    networks:
+      - mysql-net
+      - redis-net
+    restart: unless-stopped

@@ -1,0 +1,53 @@
+
+/* markdown */
+.editor-toolbar,
+.editor-preview-side,
+.CodeMirror {
+  border-color: #ced4da;
+}
+.CodeMirror {
+  height: 400px;
+}
+.cm-header {
+  line-height: normal !important;
+}
+.editor-preview table,
+.editor-preview-side table,
+.markdown table {
+  margin-bottom: 1rem;
+}
+.editor-preview table td,
+.editor-preview table th,
+.editor-preview-side table td,
+.editor-preview-side table th,
+.markdown table th,
+.markdown table td {
+  padding: 0.5rem;
+}
+.markdown table th,
+.markdown table td {
+  border: 1px solid #ced4da;
+}
+.editor-preview pre,
+.editor-preview-side pre,
+.markdown pre,
+.editor-preview blockquote,
+.editor-preview-side blockquote,
+.markdown blockquote {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+}
+.editor-preview blockquote p:last-child,
+.editor-preview-side blockquote p:last-child,
+.markdown blockquote p:last-child {
+  margin-bottom: 0;
+}
+.editor-preview blockquote,
+.editor-preview-side blockquote {
+  background-color: #eee;
+}
+.markdown pre,
+.markdown blockquote {
+  background-color: #e9ecef;
+}

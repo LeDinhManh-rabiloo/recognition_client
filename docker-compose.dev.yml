@@ -1,0 +1,21 @@
+version: '3.5'
+
+# =========================================
+# Services
+# =========================================
+services:
+  composer:
+    image: composer
+    command: install --ignore-platform-reqs --no-interaction --no-progress --no-scripts --no-suggest --optimize-autoloader --prefer-dist
+    restart: on-failure
+    volumes:
+      - .:/app
+    working_dir: /app
+
+  node:
+    image: node:12
+    command: npm ci
+    restart: on-failure
+    volumes:
+      - .:/app
+    working_dir: /app

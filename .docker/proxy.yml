@@ -1,0 +1,52 @@
+version: "3.5"
+
+# =========================================
+# Networks
+# =========================================
+networks:
+  proxydb-net: {}
+  proxy-net:
+    name: reverse-proxy
+
+# =========================================
+# Volumes
+# =========================================
+volumes:
+  proxy-db: {}
+  proxy-dt: {}
+  proxy-le: {}
+
+# =========================================
+# Services
+# =========================================
+services:
+  proxy:
+    image: jc21/nginx-proxy-manager:latest
+    networks:
+      - proxy-net
+      - proxydb-net
+    ports:
+      - 80:80
+      - 81:81
+      - 443:443
+    restart: unless-stopped
+    volumes:
+      - ./proxy.json:/app/config/production.json
+      - proxy-dt:/data
+      - proxy-le:/etc/letsencrypt
+  proxydb:
+    image: mysql:8.0
+    command:
+      - '--default-authentication-plugin=mysql_native_password'
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
+    environment:
+      MYSQL_ROOT_PASSWORD:  'DB_PASSWORD'
+      MYSQL_USER:           'DB_USERNAME'
+      MYSQL_PASSWORD:       'DB_PASSWORD'
+      MYSQL_DATABASE:       'proxydb'
+    networks:
+      - proxydb-net
+    restart: unless-stopped
+    volumes:
+      - proxy-db:/var/lib/mysql
